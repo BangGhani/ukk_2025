@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'logic/controller.dart';
-import 'pages/login/login.dart';
+import 'pages/akun/login.dart';
 import 'pages/home.dart';
 
 Future<void> main() async {
