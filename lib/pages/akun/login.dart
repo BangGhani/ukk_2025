@@ -1,33 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:ukk_2025/components/themes.dart';
+import '../../components/form.dart';
 import '../../logic/controller.dart';
+import '../home.dart';
 
 class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController userController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _message = '';
 
   Future<void> _login() async {
     try {
       if (_formKey.currentState!.validate()) {
         final response = await supabase.auth.signInWithPassword(
-          email: usernameController.text,
+          email: userController.text,
           password: passwordController.text,
         );
-
-        setState(() {
-          _message = 'Login Berhasil!';
-        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: ThemeColor.putih,
+            content: AwesomeSnackbarContent(
+                title: 'Berhasil',
+                message: 'Login Berhasil',
+                contentType: ContentType.success)));
       }
     } catch (e) {
-      setState(() {
-        _message = 'Login Gagal : $e';
-      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: ThemeColor.putih,
+          content: AwesomeSnackbarContent(
+              title: 'Gagal',
+              message: 'Login gagal: $e',
+              contentType: ContentType.failure)));
     }
   }
 
@@ -45,29 +55,19 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextFormField(
-                controller: usernameController,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Email tidak boleh kosong';
-                  }
-                  return null;
-                },
+              CustomTextField(
+                label: 'Email',
+                hintText: 'email@gmail.com',
+                controller: userController,
+                validator: (value) => value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
               ),
-              SizedBox(
-                height: 10,
-              ),
-              TextFormField(
+              SizedBox(height: 10),
+              CustomTextField(
+                label: 'Password',
+                hintText: 'Password',
                 controller: passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Password tidak boleh kosong';
-                  }
-                  return null;
-                },
+                isPassword: true,
+                validator: (value) => value!.isEmpty ? 'Field ini tidak boleh kosong' : null
               ),
               SizedBox(height: 20),
               ElevatedButton(
@@ -75,10 +75,6 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text('Login'),
               ),
               SizedBox(height: 20),
-              Text(
-                _message,
-                style: TextStyle(color: Colors.red),
-              ),
             ],
           ),
         ),
