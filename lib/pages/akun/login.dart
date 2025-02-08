@@ -17,36 +17,57 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  Future<void> _login() async {
-    try {
-      if (_formKey.currentState!.validate()) {
-        final response = await supabase.auth.signInWithPassword(
-          email: userController.text,
-          password: passwordController.text,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: ThemeColor.putih,
-            content: AwesomeSnackbarContent(
-                title: 'Berhasil',
-                message: 'Login Berhasil',
-                contentType: ContentType.success)));
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          backgroundColor: ThemeColor.putih,
+  final LoginController loginController = LoginController();
+
+Future<void> login() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  print("Username: ${userController.text}");
+  print("Password: ${passwordController.text}");
+
+  try {
+    await loginController.login(
+      userController.text.trim(),
+      passwordController.text.trim(),
+    );
+    final session = supabase.auth.currentSession;
+    if (session != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: ThemeColor.background,
           content: AwesomeSnackbarContent(
-              title: 'Gagal',
-              message: 'Login gagal: $e',
-              contentType: ContentType.failure)));
+            title: 'Berhasil',
+            message: 'Login Berhasil',
+            contentType: ContentType.success,
+          ),
+        ),
+      );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      throw Exception("Login gagal, tidak ada session aktif.");
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: ThemeColor.background,
+        content: AwesomeSnackbarContent(
+          title: 'Gagal',
+          message: 'Login gagal: $e',
+          contentType: ContentType.failure,
+        ),
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -56,25 +77,27 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CustomTextField(
-                label: 'Email',
-                hintText: 'email@gmail.com',
+                label: 'Username',
+                hintText: 'Nama Pengguna',
                 controller: userController,
-                validator: (value) => value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
+                validator: (value) =>
+                    value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               CustomTextField(
                 label: 'Password',
                 hintText: 'Password',
                 controller: passwordController,
                 isPassword: true,
-                validator: (value) => value!.isEmpty ? 'Field ini tidak boleh kosong' : null
+                validator: (value) =>
+                    value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _login,
-                child: Text('Login'),
+                onPressed: login,
+                child: const Text('Login'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
             ],
           ),
         ),

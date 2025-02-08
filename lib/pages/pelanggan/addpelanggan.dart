@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:ukk_2025/components/themes.dart';
 
-class TambahProdukDialog extends StatefulWidget {
-  final Function(Map<String, dynamic> newProduk) onSave;
+class TambahPelangganDialog extends StatefulWidget {
+  final Function(Map<String, dynamic> newPelanggan) onSave;
 
-  const TambahProdukDialog({
+  const TambahPelangganDialog({
     super.key,
     required this.onSave,
   });
 
   @override
-  _TambahProdukDialogState createState() => _TambahProdukDialogState();
+  _TambahPelangganDialogState createState() => _TambahPelangganDialogState();
 }
 
-class _TambahProdukDialogState extends State<TambahProdukDialog> {
+class _TambahPelangganDialogState extends State<TambahPelangganDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _hargaController = TextEditingController();
-  final TextEditingController _stokController = TextEditingController();
+  final TextEditingController _alamatController = TextEditingController();
+  final TextEditingController _nomorController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
-    _hargaController.dispose();
-    _stokController.dispose();
+    _alamatController.dispose();
+    _nomorController.dispose();
     super.dispose();
   }
 
@@ -31,7 +31,7 @@ class _TambahProdukDialogState extends State<TambahProdukDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: ThemeColor.putih,
-      title: const Text("Tambah Produk"),
+      title: const Text("Tambah Pelanggan"),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -41,44 +41,38 @@ class _TambahProdukDialogState extends State<TambahProdukDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nama Produk',
+                  labelText: 'Nama Pelanggan',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Nama produk tidak boleh kosong';
+                    return 'Nama pelanggan tidak boleh kosong';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _hargaController,
+                controller: _alamatController,
                 decoration: const InputDecoration(
-                  labelText: 'Harga',
+                  labelText: 'Alamat',
                 ),
-                keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Harga tidak boleh kosong';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Harga harus berupa angka';
+                    return 'Alamat tidak boleh kosong';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _stokController,
+                controller: _nomorController,
                 decoration: const InputDecoration(
-                  labelText: 'Stok',
+                  labelText: 'Nomor Telepon',
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      int.tryParse(value) == null) {
-                    return 'Stok harus berupa angka';
+                  if (value == null || value.isEmpty) {
+                    return 'Nomor telepon tidak boleh kosong';
                   }
                   return null;
                 },
@@ -97,14 +91,12 @@ class _TambahProdukDialogState extends State<TambahProdukDialog> {
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              final newProduk = {
-                'namaproduk': _nameController.text,
-                'harga': int.tryParse(_hargaController.text) ?? 0,
-                'stok': _stokController.text.isEmpty
-                    ? 0
-                    : int.tryParse(_stokController.text) ?? 0,
+              final newPelanggan = {
+                'namapelanggan': _nameController.text,
+                'alamat': _alamatController.text,
+                'nomortelepon': _nomorController.text,
               };
-              widget.onSave(newProduk);
+              widget.onSave(newPelanggan);
               Navigator.of(context).pop();
             }
           },

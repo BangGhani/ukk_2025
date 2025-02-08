@@ -4,7 +4,7 @@ class ThemeColor {
   static const Color hijau = Color.fromARGB(255, 64, 170, 84);
   static const Color hitam = Color.fromARGB(255, 28, 26, 29);
   static const Color putih = Color.fromARGB(255, 248, 250, 252);
-  static const Color background = Color.fromARGB(255, 228, 228, 228);
+  static const Color background = Color.fromARGB(255, 235, 235, 235);
   static const Color abu = Color.fromARGB(255, 105, 113, 121);
 }
 

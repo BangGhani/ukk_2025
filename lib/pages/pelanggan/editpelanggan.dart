@@ -1,45 +1,45 @@
 import 'package:flutter/material.dart';
 import '../../components/themes.dart';
 
-class EditProdukDialog extends StatefulWidget {
-  final Map<String, dynamic> produk;
-  final Function(Map<String, dynamic> updatedProduk) onSave;
+class EditPelangganDialog extends StatefulWidget {
+  final Map<String, dynamic> pelanggan;
+  final Function(Map<String, dynamic> updatedPelanggan) onSave;
 
-  const EditProdukDialog({
+  const EditPelangganDialog({
     super.key,
-    required this.produk,
+    required this.pelanggan,
     required this.onSave,
   });
 
   @override
-  _EditProdukDialogState createState() => _EditProdukDialogState();
+  _EditPelangganDialogState createState() => _EditPelangganDialogState();
 }
 
-class _EditProdukDialogState extends State<EditProdukDialog> {
+class _EditPelangganDialogState extends State<EditPelangganDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _hargaController;
-  late TextEditingController _stokController;
+  late TextEditingController _alamatController;
+  late TextEditingController _nomorController;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(
-      text: widget.produk['namaproduk']?.toString() ?? '',
+      text: widget.pelanggan['namapelanggan']?.toString() ?? '',
     );
-    _hargaController = TextEditingController(
-      text: widget.produk['harga']?.toString() ?? '',
+    _alamatController = TextEditingController(
+      text: widget.pelanggan['alamat']?.toString() ?? '',
     );
-    _stokController = TextEditingController(
-      text: widget.produk['stok']?.toString() ?? '',
+    _nomorController = TextEditingController(
+      text: widget.pelanggan['nomortelepon']?.toString() ?? '',
     );
   }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _hargaController.dispose();
-    _stokController.dispose();
+    _alamatController.dispose();
+    _nomorController.dispose();
     super.dispose();
   }
 
@@ -47,7 +47,7 @@ class _EditProdukDialogState extends State<EditProdukDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: ThemeColor.putih,
-      title: const Text("Edit Produk"),
+      title: const Text("Edit Pelanggan"),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -57,7 +57,7 @@ class _EditProdukDialogState extends State<EditProdukDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Nama Produk',
+                  labelText: 'Nama Pelanggan',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -68,34 +68,29 @@ class _EditProdukDialogState extends State<EditProdukDialog> {
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _hargaController,
+                controller: _alamatController,
                 decoration: const InputDecoration(
-                  labelText: 'Harga',
+                  labelText: 'Alamat',
                 ),
-                keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Field ini tidak boleh kosong';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Harga harus berupa angka';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _stokController,
+                controller: _nomorController,
                 decoration: const InputDecoration(
-                  labelText: 'Stok',
+                  labelText: 'Nomor Telepon',
                 ),
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value != null &&
-                      value.isNotEmpty &&
-                      int.tryParse(value) == null) {
-                    return 'Stok harus berupa angka';
+                  if (value == null || value.isEmpty) {
+                    return 'Field ini tidak boleh kosong';
                   }
+                  // Validasi tambahan untuk nomor telepon bisa ditambahkan di sini
                   return null;
                 },
               ),
@@ -113,14 +108,12 @@ class _EditProdukDialogState extends State<EditProdukDialog> {
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              final updatedProduk = {
-                'namaproduk': _nameController.text,
-                'harga': int.tryParse(_hargaController.text) ?? 0,
-                'stok': _stokController.text.isEmpty
-                    ? 0
-                    : int.tryParse(_stokController.text) ?? 0
+              final updatedPelanggan = {
+                'namapelanggan': _nameController.text,
+                'alamat': _alamatController.text,
+                'nomortelepon': _nomorController.text,
               };
-              widget.onSave(updatedProduk);
+              widget.onSave(updatedPelanggan);
               Navigator.of(context).pop();
             }
           },

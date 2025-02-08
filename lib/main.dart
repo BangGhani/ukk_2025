@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'components/themes.dart';
 import 'logic/controller.dart';
 import 'pages/akun/login.dart';
 import 'pages/home.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://iakmjmtnsihsowsgnyxr.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlha21qbXRuc2loc293c2dueXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg3MTM4MjEsImV4cCI6MjA1NDI4OTgyMX0.NFsmDwKyxfExC8B-vJbzvbrZz0s8kHmRMtQnD4OgQR8',
   );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,6 +26,7 @@ class MyApp extends StatelessWidget {
       title: 'UKK 2025',
       theme: ThemeData.light().copyWith(
         primaryColor: Colors.green,
+        scaffoldBackgroundColor: ThemeColor.background,
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
             foregroundColor: Colors.green,
@@ -36,8 +39,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: session != null ? HomePage() : LoginPage(),
-      // home: LoginPage(),
+      home: session != null ? const HomePage() : const LoginPage(),
     );
   }
 }

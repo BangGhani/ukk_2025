@@ -1,16 +1,31 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+export 'validator.dart';
 
 final SupabaseClient supabase = Supabase.instance.client;
 
 class LoginController {
-  Future<void> login(String email, String password, String username) async {
-    final userdata = await supabase.from('user').select();
-    final loginresponse = await supabase.auth.signInWithPassword(
+  Future<void> login(String username, String password) async {
+    final userResponse = await supabase
+        .from('user')
+        .select('accountID, email')
+        .eq('nama', username)
+        .maybeSingle();
+    debugPrint('Response user: $userResponse');
+
+    if (userResponse == null) {
+      debugPrint('Username tidak ditemukan');
+      return;
+    }
+
+    final email = userResponse['email'];
+    debugPrint('Email ditemukan: $email');
+
+    final loginResponse = await supabase.auth.signInWithPassword(
       email: email,
       password: password,
     );
-    return;
   }
 }
 
@@ -46,6 +61,77 @@ class ProdukController {
         await supabase.from('produk').delete().eq('produkID', produkID);
     if (response == null) {
       throw Exception('Gagal menghapus produk: $response');
+    }
+  }
+}
+
+class PelangganController {
+  Future<List<dynamic>> fetchPelanggan() async {
+    final response = await supabase.from('pelanggan').select();
+    if (response == null) {
+      throw Exception('Gagal mengambil pelanggan: $response');
+    }
+    return response;
+  }
+
+  Future<void> createPelanggan(Map<String, dynamic> pelangganData) async {
+    final response = await supabase.from('pelanggan').insert(pelangganData);
+    if (response == null) {
+      throw Exception('Gagal menambahkan pelanggan: $response');
+    }
+  }
+
+  Future<void> updatePelanggan(
+      int pelangganID, Map<String, dynamic> pelangganData) async {
+    final response = await supabase
+        .from('pelanggan')
+        .update(pelangganData)
+        .eq('pelangganID', pelangganID);
+    if (response == null) {
+      throw Exception('Gagal memperbarui pelanggan: $response');
+    }
+  }
+
+  Future<void> deletePelanggan(int pelangganID) async {
+    final response = await supabase
+        .from('pelanggan')
+        .delete()
+        .eq('pelangganID', pelangganID);
+    if (response == null) {
+      throw Exception('Gagal menghapus pelanggan: $response');
+    }
+  }
+}
+
+class TransaksiController {
+  Future<void> addTransaction({
+    required pelangganID,
+    required int totalHarga,
+    required List<Map<String, dynamic>> cartItems,
+  }) async {
+    try {
+      final penjualanResponse = await supabase.from('penjualan').insert({
+        'totalHarga': totalHarga,
+        'pelangganID': pelangganID,
+      }).select();
+
+      final penjualanID = penjualanResponse[0]['penjualanID'];
+
+      final List<Map<String, dynamic>> detailPenjualan = cartItems.map((item) {
+        return {
+          'penjualanID': penjualanID,
+          'produkID': item['produkID'],
+          'jumlahproduk': item['total'],
+          'subtotal': (item['harga'] as int) * (item['total'] as int),
+        };
+      }).toList();
+
+      await supabase.from('detailpenjualan').insert(detailPenjualan);
+
+      print('Transaction successfully added!');
+    } catch (e) {
+      print('Error adding transaction: $e');
+      rethrow;
     }
   }
 }
