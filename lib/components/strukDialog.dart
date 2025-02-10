@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../components/themes.dart';
 
 class StrukDialog extends StatelessWidget {
   final Map<String, dynamic>? selectedPelanggan;
@@ -7,6 +8,7 @@ class StrukDialog extends StatelessWidget {
   final int totalPesanan;
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
+  final bool showButton;
 
   const StrukDialog({
     super.key,
@@ -15,6 +17,7 @@ class StrukDialog extends StatelessWidget {
     required this.totalPesanan,
     required this.onCancel,
     required this.onConfirm,
+    this.showButton = true, // default true (tombol muncul)
   });
 
   @override
@@ -28,7 +31,7 @@ class StrukDialog extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: Colors.white,
+          color: ThemeColor.putih,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -46,7 +49,9 @@ class StrukDialog extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text('Tanggal: $currentDate'),
-            Text('Pelanggan: ${selectedPelanggan?['namaPelanggan'] ?? 'Tanpa Pelanggan'}'),
+            Text(
+              'Pelanggan: ${selectedPelanggan?['namapelanggan'] ?? 'Non Member'}',
+            ),
             const Divider(thickness: 2),
             
             // Daftar Produk
@@ -55,7 +60,9 @@ class StrukDialog extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Expanded(
+            // Gunakan SizedBox dengan tinggi tertentu agar ListView memiliki batas tinggi
+            SizedBox(
+              height: 200,
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: listPesanan.length,
@@ -68,12 +75,12 @@ class StrukDialog extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            '${item['namaProduk']} (x${item['total']})',
+                            '${item['namaproduk']} (x${item['total']})',
                             style: const TextStyle(fontSize: 14),
                           ),
                         ),
                         Text(
-                          'Rp ${NumberFormat('#,###').format(item['harga'] * item['total'])}',
+                          'Rp ${NumberFormat('#,##0', 'id').format(item['harga'] * item['total'])}',
                           style: const TextStyle(fontSize: 14),
                         ),
                       ],
@@ -93,7 +100,7 @@ class StrukDialog extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'Rp ${NumberFormat('#,###').format(totalPesanan)}',
+                  'Rp ${NumberFormat('#,##0', 'id').format(totalPesanan)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -104,37 +111,38 @@ class StrukDialog extends StatelessWidget {
             const SizedBox(height: 20),
             
             // Tombol Aksi
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: onCancel,
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.red[50],
-                      side: BorderSide(color: Colors.red.shade300),
-                    ),
-                    child: Text(
-                      'Batal',
-                      style: TextStyle(color: Colors.red.shade700),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: onConfirm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[600],
-                    ),
-                    child: const Text(
-                      'Konfirmasi',
-                      style: TextStyle(color: Colors.white),
+            if (showButton)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onCancel,
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: ThemeColor.background,
+                        side: BorderSide(color: Colors.red.shade300),
+                      ),
+                      child: Text(
+                        'Batal',
+                        style: TextStyle(color: Colors.red.shade700),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: onConfirm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ThemeColor.hijau,
+                      ),
+                      child: const Text(
+                        'Konfirmasi',
+                        style: TextStyle(color: ThemeColor.putih),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

@@ -52,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
           backgroundColor: ThemeColor.background,
           content: AwesomeSnackbarContent(
             title: 'Gagal',
-            message: 'Login gagal: ${e.toString()}',
+            message: 'Login gagal, mohon periksa kredensial Anda',
             contentType: ContentType.failure,
           ),
         ),
