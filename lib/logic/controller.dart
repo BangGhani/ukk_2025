@@ -108,6 +108,35 @@ class PelangganController {
   }
 }
 
+// class TransaksiController {
+//   Future<void> addTransaction({
+//     required pelangganID,
+//     required int totalHarga,
+//     required List<Map<String, dynamic>> cartItems,
+//   }) async {
+//     try {
+//       final penjualanResponse = await supabase.from('penjualan').insert({
+//         'totalharga': totalHarga,
+//         'pelangganID': pelangganID,
+//       }).select();
+//       final penjualanID = penjualanResponse[0]['penjualanID'];
+//       final List<Map<String, dynamic>> detailPenjualan = cartItems.map((item) {
+//         return {
+//           'penjualanID': penjualanID,
+//           'produkID': item['produkID'],
+//           'jumlahproduk': item['total'],
+//           'subtotal': (item['harga'] as int) * (item['total'] as int),
+//         };
+//       }).toList();
+//       await supabase.from('detailpenjualan').insert(detailPenjualan);
+//       debugPrint('Transaction successfully added!');
+//     } catch (e) {
+//       debugPrint('Error adding transaction: $e');
+//       rethrow;
+//     }
+//   }
+// }
+
 class TransaksiController {
   Future<void> addTransaction({
     required pelangganID,
@@ -133,9 +162,53 @@ class TransaksiController {
 
       await supabase.from('detailpenjualan').insert(detailPenjualan);
 
-      debugPrint('Transaction successfully added!');
+      for (var item in cartItems) {
+        final produkResponse = await supabase
+            .from('produk')
+            .select('stok')
+            .eq('produkID', item['produkID'])
+            .maybeSingle();
+
+        if (produkResponse != null && produkResponse['stok'] != null) {
+          final currentStok = produkResponse['stok'] as int;
+          final jumlahTerjual = item['total'] as int;
+          final newStok = currentStok - jumlahTerjual;
+          // Perbarui stok produk di tabel produk
+          await supabase
+              .from('produk')
+              .update({'stok': newStok}).eq('produkID', item['produkID']);
+        }
+      }
+
+      debugPrint('Transaksi berhasil');
     } catch (e) {
       debugPrint('Error adding transaction: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<dynamic>> fetchPenjualan() async {
+    try {
+      final response = await supabase
+          .from('penjualan')
+          .select('*, pelanggan(*)')
+          .order('tanggalpenjualan', ascending: false);
+      return response as List<dynamic>;
+    } catch (e) {
+      debugPrint('Error fetching penjualan: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<dynamic>> fetchDetailPenjualan() async {
+    try {
+      final response = await supabase
+          .from('detailpenjualan')
+          .select()
+          .order('penjualanID', ascending: true);
+      return response as List<dynamic>;
+    } catch (e) {
+      debugPrint('Error fetching detail penjualan: $e');
       rethrow;
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'components/themes.dart';
 import 'logic/controller.dart';
@@ -7,6 +8,7 @@ import 'pages/home.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id', null);
   await Supabase.initialize(
     url: 'https://iakmjmtnsihsowsgnyxr.supabase.co',
     anonKey:

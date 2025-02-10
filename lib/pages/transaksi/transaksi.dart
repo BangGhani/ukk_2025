@@ -32,10 +32,8 @@ class _TransaksiState extends State<Transaksi> {
   }
 
   Future<void> fetchInitialData() async {
-    listProduk =
-        (await produkcontroller.fetchProduk()).cast<Map<String, dynamic>>();
-    customerList = (await pelanggancontroller.fetchPelanggan())
-        .cast<Map<String, dynamic>>();
+    listProduk = (await produkcontroller.fetchProduk()).cast<Map<String, dynamic>>();
+    customerList = (await pelanggancontroller.fetchPelanggan()).cast<Map<String, dynamic>>();
     setState(() {});
   }
 
@@ -64,8 +62,24 @@ class _TransaksiState extends State<Transaksi> {
 
   void onAdd(int index) {
     setState(() {
-      cartItems[index]['total'] += 1;
-      calculateTotals();
+      final currentQuantity = cartItems[index]['total'] as int;
+      //Ambil stok dari cart
+      final productStock = cartItems[index]['stok'] as int;
+      if (currentQuantity < productStock) {
+        cartItems[index]['total'] = currentQuantity + 1;
+        calculateTotals();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: ThemeColor.background,
+            content: AwesomeSnackbarContent(
+              title: 'Stok tidak cukup',
+              message: 'Jumlah produk sudah mencapai stok maksimum.',
+              contentType: ContentType.warning,
+            ),
+          ),
+        );
+      }
     });
   }
 
@@ -115,7 +129,16 @@ class _TransaksiState extends State<Transaksi> {
         totalPrice = 0;
         selectedCustomer = null;
       });
-      showSuccessDialog(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: ThemeColor.background,
+          content: AwesomeSnackbarContent(
+            title: 'Transaksi Berhasil',
+            message: 'Transaksi berhasil dilakukan.',
+            contentType: ContentType.success,
+          ),
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -128,29 +151,6 @@ class _TransaksiState extends State<Transaksi> {
         ),
       );
     }
-  }
-
-  void showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: ThemeColor.putih,
-        title: Text(
-          "Berhasil",
-          style: TextStyle(color: ThemeColor.hijau),
-        ),
-        content: const Text("Transaksi berhasil dilakukan."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              "OK",
-              style: TextStyle(color: ThemeColor.hijau),
-            ),
-          )
-        ],
-      ),
-    );
   }
 
   @override
@@ -170,6 +170,7 @@ class _TransaksiState extends State<Transaksi> {
       body: SafeArea(
         child: Column(
           children: [
+            //searchbar
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
@@ -231,15 +232,18 @@ class _TransaksiState extends State<Transaksi> {
                 ),
               ),
             ),
+            //body
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   children: [
                     ...cartItems.map((item) {
                       int itemIndex = cartItems.indexOf(item);
+                      double subtotal =
+                          (item['harga'] * item['total']).toDouble();
                       return SingleCartItemTile(
                         title: item['namaproduk'],
-                        price: item['harga'],
+                        price: subtotal,
                         total: item['total'],
                         onAdd: () => onAdd(itemIndex),
                         onRemove: () => onRemove(itemIndex),
@@ -281,9 +285,7 @@ class _TransaksiState extends State<Transaksi> {
                       totalPrice: 'Rp. $totalPrice',
                       customer: selectedCustomer ?? 'Non Member',
                     ),
-                    AcceptButton(
-                      onPressed: runTransaction,
-                    ),
+                    AcceptButton(onPressed: runTransaction),
                   ],
                 ),
               ),
