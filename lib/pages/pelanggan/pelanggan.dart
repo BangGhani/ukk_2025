@@ -234,9 +234,9 @@ class _PelangganState extends State<Pelanggan> {
                 final pelanggan = pelangganList[index];
                 return CustomList(
                   id: pelanggan['pelangganID'] as int,
-                  name: pelanggan['namapelanggan'] as String,
-                  stok: pelanggan['alamat'].toString(),
-                  price: pelanggan['nomortelepon'].toString(),
+                  title: pelanggan['namapelanggan'] as String,
+                  text1: pelanggan['alamat'].toString(),
+                  text2: pelanggan['nomortelepon'].toString(),
                   delete: () => deletePelanggan(pelanggan),
                   edit: () => editPelanggan(pelanggan),
                 );

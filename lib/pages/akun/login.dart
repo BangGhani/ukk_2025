@@ -16,51 +16,49 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController userController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final AuthController authController = AuthController();
+  final FocusNode _passwordFocusNode = FocusNode();
 
-  final LoginController loginController = LoginController();
+  Future<void> login() async {
+    if (!_formKey.currentState!.validate()) return;
 
-Future<void> login() async {
-  if (!_formKey.currentState!.validate()) return;
+    print("Username: ${userController.text}");
+    print("Password: ${passwordController.text}");
 
-  print("Username: ${userController.text}");
-  print("Password: ${passwordController.text}");
+    try {
+      await authController.login(
+        userController.text.trim(),
+        passwordController.text.trim(),
+      );
 
-  try {
-    await loginController.login(
-      userController.text.trim(),
-      passwordController.text.trim(),
-    );
-    final session = supabase.auth.currentSession;
-    if (session != null) {
+      if (supabase.auth.currentSession != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: ThemeColor.background,
+            content: AwesomeSnackbarContent(
+              title: 'Berhasil',
+              message: 'Login Berhasil',
+              contentType: ContentType.success,
+            ),
+          ),
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: ThemeColor.background,
           content: AwesomeSnackbarContent(
-            title: 'Berhasil',
-            message: 'Login Berhasil',
-            contentType: ContentType.success,
+            title: 'Gagal',
+            message: 'Login gagal: ${e.toString()}',
+            contentType: ContentType.failure,
           ),
         ),
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } else {
-      throw Exception("Login gagal, tidak ada session aktif.");
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: ThemeColor.background,
-        content: AwesomeSnackbarContent(
-          title: 'Gagal',
-          message: 'Login gagal: $e',
-          contentType: ContentType.failure,
-        ),
-      ),
-    );
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -78,10 +76,12 @@ Future<void> login() async {
             children: [
               CustomTextField(
                 label: 'Username',
-                hintText: 'Nama Pengguna',
+                hintText: 'Username',
                 controller: userController,
                 validator: (value) =>
                     value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
+                textInputAction: TextInputAction.go,
+                onSubmitted: (_) => login(),
               ),
               const SizedBox(height: 10),
               CustomTextField(
@@ -89,15 +89,17 @@ Future<void> login() async {
                 hintText: 'Password',
                 controller: passwordController,
                 isPassword: true,
+                focusNode: _passwordFocusNode,
                 validator: (value) =>
                     value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
+                textInputAction: TextInputAction.go,
+                onSubmitted: (_) => login(),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: login,
                 child: const Text('Login'),
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),

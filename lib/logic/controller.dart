@@ -5,13 +5,10 @@ export 'validator.dart';
 
 final SupabaseClient supabase = Supabase.instance.client;
 
-class LoginController {
+class AuthController {
   Future<void> login(String username, String password) async {
-    final userResponse = await supabase
-        .from('user')
-        .select('accountID, email')
-        .eq('nama', username)
-        .maybeSingle();
+    final userResponse =
+        await supabase.from('user').select().eq('nama', username).maybeSingle();
     debugPrint('Response user: $userResponse');
 
     if (userResponse == null) {
@@ -26,6 +23,14 @@ class LoginController {
       email: email,
       password: password,
     );
+  }
+
+  Future<void> logout() async {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      throw Exception('Gagal logout: $e');
+    }
   }
 }
 
@@ -111,7 +116,7 @@ class TransaksiController {
   }) async {
     try {
       final penjualanResponse = await supabase.from('penjualan').insert({
-        'totalHarga': totalHarga,
+        'totalharga': totalHarga,
         'pelangganID': pelangganID,
       }).select();
 
@@ -128,9 +133,9 @@ class TransaksiController {
 
       await supabase.from('detailpenjualan').insert(detailPenjualan);
 
-      print('Transaction successfully added!');
+      debugPrint('Transaction successfully added!');
     } catch (e) {
-      print('Error adding transaction: $e');
+      debugPrint('Error adding transaction: $e');
       rethrow;
     }
   }

@@ -7,17 +7,17 @@ class CustomList extends StatelessWidget {
   const CustomList({
     super.key,
     required this.id,
-    required this.name,
-    required this.stok,
-    required this.price,
+    required this.title,
+    required this.text1,
+    required this.text2,
     required this.delete,
     required this.edit,
   });
 
   final int id;
-  final String name;
-  final String stok;
-  final String price;
+  final String title;
+  final String text1;
+  final String text2;
   final VoidCallback delete;
   final VoidCallback edit;
 
@@ -42,7 +42,7 @@ class CustomList extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    name,
+                    title,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -50,7 +50,7 @@ class CustomList extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    stok,
+                    text1,
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -62,7 +62,7 @@ class CustomList extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    price,
+                    text2,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

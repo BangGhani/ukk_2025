@@ -1,6 +1,7 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:ukk_2025/pages/transaksi/invoice.dart';
 import '../components/themes.dart';
 
 import 'produk/produk.dart';
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
     Produk(),
     Pelanggan(),
     Transaksi(),
+    Invoice(),
     Profil(),
   ];
 
@@ -52,6 +54,7 @@ class _HomePageState extends State<HomePage> {
           Icon(Icons.list, size: 30, color: ThemeColor.putih), // produk
           Icon(Icons.people_alt_outlined, size: 30, color: ThemeColor.putih), // pelanggan
           Icon(Icons.compare_arrows, size: 30, color: ThemeColor.putih), // transaksi
+          Icon(Icons.list_alt_outlined, size: 30, color: ThemeColor.putih), // invoice
           Icon(Icons.person_pin, size: 30, color: ThemeColor.putih), // profil
         ],
         onTap: (index) {

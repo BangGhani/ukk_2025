@@ -17,17 +17,17 @@ class Produk extends StatefulWidget {
 
 class _ProdukState extends State<Produk> {
   final ProdukController produkController = ProdukController();
-  late Future<List<dynamic>> produkFuture;
+  late Future<List<dynamic>> produkData;
 
   @override
   void initState() {
     super.initState();
-    produkFuture = produkController.fetchProduk();
+    produkData = produkController.fetchProduk();
   }
 
   void refreshProduk() {
     setState(() {
-      produkFuture = produkController.fetchProduk();
+      produkData = produkController.fetchProduk();
     });
   }
 
@@ -219,7 +219,7 @@ class _ProdukState extends State<Produk> {
       body: Padding(
         padding: EdgeInsets.all(ThemeSize.padding),
         child: FutureBuilder<List<dynamic>>(
-          future: produkFuture,
+          future: produkData,
           builder: (context, item) {
             if (item.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

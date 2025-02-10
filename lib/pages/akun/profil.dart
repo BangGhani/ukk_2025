@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ukk_2025/components/themes.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import '../../components/themes.dart';
+
+import '../../logic/controller.dart';
+import 'login.dart';
 
 class Profil extends StatefulWidget {
   const Profil({super.key});
@@ -9,13 +13,14 @@ class Profil extends StatefulWidget {
 }
 
 class _ProfilState extends State<Profil> {
+  final AuthController authController = AuthController();
   bool isDarkMode = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: const Text('Profil'),
         backgroundColor: ThemeColor.background,
       ),
       body: Padding(
@@ -23,7 +28,6 @@ class _ProfilState extends State<Profil> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Info Section
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text(
@@ -39,43 +43,48 @@ class _ProfilState extends State<Profil> {
               ),
             ),
             const SizedBox(height: 20),
-
-
-            // Account Settings Section
             const Text(
-              'Account Settings',
+              'Pengaturan akun',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 10),
-            
-            // Change Password Button
             ListTile(
-              title: const Text('Change Password'),
+              title: const Text('Ubah Password'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                // Handle Change Password Navigation
-              },
+              onTap: () {},
             ),
-
-            // Edit Profile Button
             ListTile(
-              title: const Text('Edit Profile'),
+              title: const Text('Edit Profil'),
               trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () {
-                // Handle Edit Profile Navigation
-              },
+              onTap: () {},
             ),
-
             const Spacer(),
-
-            // Logout Button
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle Logout Action
+                onPressed: () async {
+                  try {
+                    await authController.logout();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: ThemeColor.background,
+                        content: AwesomeSnackbarContent(
+                          title: 'Berhasil',
+                          message: 'Logout Berhasil',
+                          contentType: ContentType.success,
+                        ),
+                      ),
+                    );
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal logout: $e')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
