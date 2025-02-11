@@ -3,8 +3,9 @@ import 'package:intl/intl.dart';
 import '../components/themes.dart';
 
 class StrukDialog extends StatelessWidget {
-  final Map<String, dynamic>? selectedPelanggan;
-  final List<Map<String, dynamic>> listPesanan;
+  final String? selectedPelanggan;
+  final String? date;
+  final List<Map<String, dynamic>> cartItems;
   final int totalPesanan;
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
@@ -12,18 +13,17 @@ class StrukDialog extends StatelessWidget {
 
   const StrukDialog({
     super.key,
+    required this.date,
     required this.selectedPelanggan,
-    required this.listPesanan,
+    required this.cartItems,
     required this.totalPesanan,
     required this.onCancel,
     required this.onConfirm,
-    this.showButton = true, // default true (tombol muncul)
+    this.showButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd MMMM yyyy');
-    final currentDate = dateFormat.format(DateTime.now());
 
     return Dialog(
       insetPadding: const EdgeInsets.all(20),
@@ -48,12 +48,12 @@ class StrukDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Text('Tanggal: $currentDate'),
+            Text('Tanggal: $date'),
             Text(
-              'Pelanggan: ${selectedPelanggan?['namapelanggan'] ?? 'Non Member'}',
+              'Pelanggan: $selectedPelanggan',
             ),
             const Divider(thickness: 2),
-            
+
             // Daftar Produk
             const Text(
               'Daftar Pesanan:',
@@ -65,9 +65,9 @@ class StrukDialog extends StatelessWidget {
               height: 200,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: listPesanan.length,
+                itemCount: cartItems.length,
                 itemBuilder: (context, index) {
-                  final item = listPesanan[index];
+                  final item = cartItems[index];
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
@@ -89,7 +89,7 @@ class StrukDialog extends StatelessWidget {
                 },
               ),
             ),
-            
+
             // Total
             const Divider(thickness: 2),
             Row(
@@ -109,7 +109,7 @@ class StrukDialog extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            
+
             // Tombol Aksi
             if (showButton)
               Row(

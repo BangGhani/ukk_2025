@@ -35,6 +35,7 @@ class ConfirmButton extends StatelessWidget {
 class CustomTextField extends StatefulWidget {
   final String label;
   final String hintText;
+  final Widget? prefixIcon;
   final TextEditingController controller;
   final String? Function(String?)? validator;
   final bool isPassword;
@@ -54,6 +55,7 @@ class CustomTextField extends StatefulWidget {
     this.onSubmitted,
     this.focusNode,
     this.textInputAction,
+    this.prefixIcon,
   });
 
   @override
@@ -76,13 +78,25 @@ class _CustomTextFieldState extends State<CustomTextField> {
         TextFormField(
           controller: widget.controller,
           decoration: InputDecoration(
-            border: const OutlineInputBorder(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: ThemeColor.abu),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: ThemeColor.hijau),
+            ),
+            filled: true,
+            fillColor: ThemeColor.putih,
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             hintText: widget.hintText,
+            prefixIcon: widget.prefixIcon,
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.grey,
+                      color: ThemeColor.abu,
                     ),
                     onPressed: () {
                       setState(() {

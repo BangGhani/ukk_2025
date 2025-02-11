@@ -22,8 +22,8 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    print("Username: ${userController.text}");
-    print("Password: ${passwordController.text}");
+    debugPrint("Username: ${userController.text}");
+    debugPrint("Password: ${passwordController.text}");
 
     try {
       await authController.login(
@@ -47,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
+      debugPrint('Login gagal: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: ThemeColor.background,
@@ -63,43 +64,113 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Login'),
-      ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+        padding: const EdgeInsets.all(24.0),
+        child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomTextField(
-                label: 'Username',
-                hintText: 'Username',
-                controller: userController,
-                validator: (value) =>
-                    value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
-                textInputAction: TextInputAction.go,
-                onSubmitted: (_) => login(),
-              ),
-              const SizedBox(height: 10),
-              CustomTextField(
-                label: 'Password',
-                hintText: 'Password',
-                controller: passwordController,
-                isPassword: true,
-                focusNode: _passwordFocusNode,
-                validator: (value) =>
-                    value!.isEmpty ? 'Field ini tidak boleh kosong' : null,
-                textInputAction: TextInputAction.go,
-                onSubmitted: (_) => login(),
+              const SizedBox(height: 60),
+              Center(
+                child: Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[200],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 3,
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      )
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/app_logo.png',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: login,
-                child: const Text('Login'),
+              Text(
+                'eCashier',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                  letterSpacing: 2.0,
+                ),
               ),
+              const SizedBox(height: 40),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    CustomTextField(
+                      label: 'Username',
+                      hintText: 'Masukkan username Anda',
+                      controller: userController,
+                      prefixIcon: const Icon(Icons.person_outline),
+                      validator: (value) => value!.isEmpty
+                          ? 'Field ini tidak boleh kosong'
+                          : null,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 20),
+                    CustomTextField(
+                      label: 'Password',
+                      hintText: 'Masukkan password Anda',
+                      controller: passwordController,
+                      isPassword: true,
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      validator: (value) => value!.isEmpty
+                          ? 'Field ini tidak boleh kosong'
+                          : null,
+                      textInputAction: TextInputAction.go,
+                      onSubmitted: (_) => login(),
+                    ),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ThemeColor.hijau,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 3,
+                        ),
+                        child: const Text(
+                          'MASUK',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 30),
+              // TextButton(
+              //   onPressed: () {
+              //     // Navigasi ke lupa password
+              //   },
+              //   child: const Text(
+              //     'Lupa Password?',
+              //     style: TextStyle(
+              //       color: ThemeColor.hijau,
+              //       decoration: TextDecoration.underline,
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

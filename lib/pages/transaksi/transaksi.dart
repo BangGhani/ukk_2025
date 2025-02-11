@@ -2,7 +2,9 @@ import 'package:drop_down_list/model/selected_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:drop_down_list/drop_down_list.dart';
+import 'package:intl/intl.dart';
 import '../../components/themes.dart';
+import '../../components/strukDialog.dart';
 import '../../logic/controller.dart';
 import 'listTransaksi.dart';
 
@@ -16,10 +18,10 @@ class Transaksi extends StatefulWidget {
 class _TransaksiState extends State<Transaksi> {
   List<Map<String, dynamic>> listProduk = [];
   List<Map<String, dynamic>> cartItems = [];
-  List<Map<String, dynamic>> customerList = [];
-  String? selectedCustomer;
+  List<Map<String, dynamic>> listPelanggan = [];
+  String? pelanggan;
   int total = 0;
-  int totalPrice = 0;
+  int totalHarga = 0;
 
   final TransaksiController transaksicontroller = TransaksiController();
   final PelangganController pelanggancontroller = PelangganController();
@@ -32,8 +34,10 @@ class _TransaksiState extends State<Transaksi> {
   }
 
   Future<void> fetchInitialData() async {
-    listProduk = (await produkcontroller.fetchProduk()).cast<Map<String, dynamic>>();
-    customerList = (await pelanggancontroller.fetchPelanggan()).cast<Map<String, dynamic>>();
+    listProduk =
+        (await produkcontroller.fetchProduk()).cast<Map<String, dynamic>>();
+    listPelanggan = (await pelanggancontroller.fetchPelanggan())
+        .cast<Map<String, dynamic>>();
     setState(() {});
   }
 
@@ -53,10 +57,10 @@ class _TransaksiState extends State<Transaksi> {
 
   void calculateTotals() {
     total = 0;
-    totalPrice = 0;
+    totalHarga = 0;
     for (var item in cartItems) {
       total += item['total'] as int;
-      totalPrice += (item['harga'] as int) * (item['total'] as int);
+      totalHarga += (item['harga'] as int) * (item['total'] as int);
     }
   }
 
@@ -101,10 +105,29 @@ class _TransaksiState extends State<Transaksi> {
     });
   }
 
+  void showInvoice() {
+    final dateFormat = DateFormat('dd MMMM yyyy', 'id');
+    final currentDate = dateFormat.format(DateTime.now());
+    showDialog(
+      context: context,
+      builder: (context) => StrukDialog(
+        date: currentDate,
+        selectedPelanggan: pelanggan ?? 'Non Member',
+        cartItems: cartItems,
+        totalPesanan: totalHarga,
+        onCancel: () => Navigator.pop(context),
+        onConfirm: () {
+          Navigator.pop(context);
+          runTransaction();
+        },
+      ),
+    );
+  }
+
   void runTransaction() async {
     try {
-      final selectedCustomerData = customerList.firstWhere(
-          (customer) => customer['namapelanggan'] == selectedCustomer);
+      final pelangganData = listPelanggan
+          .firstWhere((customer) => customer['namapelanggan'] == pelanggan);
       if (cartItems.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -119,15 +142,15 @@ class _TransaksiState extends State<Transaksi> {
         return;
       }
       await transaksicontroller.addTransaction(
-        pelangganID: selectedCustomerData['pelangganID'],
-        totalHarga: totalPrice,
+        pelangganID: pelangganData['pelangganID'],
+        totalHarga: totalHarga,
         cartItems: cartItems,
       );
       setState(() {
         cartItems.clear();
         total = 0;
-        totalPrice = 0;
-        selectedCustomer = null;
+        totalHarga = 0;
+        pelanggan = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -264,10 +287,10 @@ class _TransaksiState extends State<Transaksi> {
                     Padding(
                       padding: const EdgeInsets.all(ThemeSize.padding),
                       child: DropdownButton<String>(
-                        value: selectedCustomer,
+                        value: pelanggan,
                         isExpanded: true,
                         hint: const Text('Pilih Pelanggan'),
-                        items: customerList.map((customer) {
+                        items: listPelanggan.map((customer) {
                           return DropdownMenuItem<String>(
                             value: customer['namapelanggan'],
                             child: Text(customer['namapelanggan']),
@@ -275,17 +298,17 @@ class _TransaksiState extends State<Transaksi> {
                         }).toList(),
                         onChanged: (String? newValue) {
                           setState(() {
-                            selectedCustomer = newValue;
+                            pelanggan = newValue;
                           });
                         },
                       ),
                     ),
                     ItemTotalsAndPrice(
                       totalItem: total,
-                      totalPrice: 'Rp. $totalPrice',
-                      customer: selectedCustomer ?? 'Non Member',
+                      totalPrice: 'Rp ${NumberFormat("#,###", "id").format(totalHarga)}',
+                      customer: pelanggan ?? 'Non Member',
                     ),
-                    AcceptButton(onPressed: runTransaction),
+                    AcceptButton(onPressed: showInvoice),
                   ],
                 ),
               ),
