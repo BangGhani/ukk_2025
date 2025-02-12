@@ -7,6 +7,7 @@ class StrukDialog extends StatelessWidget {
   final String? date;
   final List<Map<String, dynamic>> cartItems;
   final int totalPesanan;
+  final VoidCallback createPDF;
   final VoidCallback onCancel;
   final VoidCallback onConfirm;
   final bool showButton;
@@ -19,12 +20,11 @@ class StrukDialog extends StatelessWidget {
     required this.totalPesanan,
     required this.onCancel,
     required this.onConfirm,
-    this.showButton = true,
+    this.showButton = true, required this.createPDF,
   });
 
   @override
   Widget build(BuildContext context) {
-
     return Dialog(
       insetPadding: const EdgeInsets.all(20),
       child: Container(
@@ -110,6 +110,24 @@ class StrukDialog extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: createPDF,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
+                    child: const Text(
+                      'Download PDF',
+                      style: TextStyle(color: ThemeColor.putih),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
             // Tombol Aksi
             if (showButton)
               Row(

@@ -120,6 +120,7 @@ class _TransaksiState extends State<Transaksi> {
           Navigator.pop(context);
           runTransaction();
         },
+        createPDF: () {},
       ),
     );
   }
@@ -305,7 +306,8 @@ class _TransaksiState extends State<Transaksi> {
                     ),
                     ItemTotalsAndPrice(
                       totalItem: total,
-                      totalPrice: 'Rp ${NumberFormat("#,###", "id").format(totalHarga)}',
+                      totalPrice:
+                          'Rp ${NumberFormat("#,###", "id").format(totalHarga)}',
                       customer: pelanggan ?? 'Non Member',
                     ),
                     AcceptButton(onPressed: showInvoice),

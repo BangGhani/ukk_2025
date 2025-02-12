@@ -23,6 +23,8 @@ dependencies:
   dropdown_search: ^6.0.2
   drop_down_list: ^2.0.0
   shared_preferences: ^2.5.2
+  pdf: ^3.11.2
+  printing: ^5.14.0
 
 dev_dependencies:
   flutter_test:
