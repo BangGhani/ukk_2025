@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/widgets.dart' as pw; // untuk pembuatan PDF
+import 'package:printing/printing.dart'; // untuk membagikan/download PDF
 import '../../components/themes.dart';
-import '../../components/list.dart'; // Pastikan CustomList tersedia di sini
-import '../../logic/controller.dart';
+import '../../components/list.dart';
 import '../../components/strukDialog.dart';
+import '../../logic/controller.dart';
 
 class Invoice extends StatefulWidget {
   const Invoice({super.key});
@@ -33,6 +35,7 @@ class _InvoiceState extends State<Invoice> {
     });
   }
 
+  // Fungsi search (sementara)
   void searchInvoice() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -44,6 +47,19 @@ class _InvoiceState extends State<Invoice> {
         ),
       ),
     );
+  }
+
+  Future<String> getCustomerName(Map<String, dynamic> penjualan) async {
+    if (penjualan['pelanggan'] != null) {
+      final dynamic dataPelanggan = penjualan['pelanggan'];
+      if (dataPelanggan is List && dataPelanggan.isNotEmpty) {
+        return dataPelanggan.first['namapelanggan']?.toString() ?? 'Non Member';
+      } else if (dataPelanggan is Map<String, dynamic>) {
+        return dataPelanggan['namapelanggan']?.toString() ?? 'Non Member';
+      }
+    }
+    return await transaksiController
+        .fetchCustomerName(penjualan['pelangganID']);
   }
 
   void showInvoice(Map<String, dynamic> penjualan) async {
@@ -70,9 +86,7 @@ class _InvoiceState extends State<Invoice> {
             .format(DateTime.parse(tanggalPenjualan.toString()))
         : '';
 
-    String customerName =
-        penjualan['pelanggan']['namapelanggan']?.toString() ?? 'Non Member';
-
+    final customerName = await getCustomerName(penjualan);
     final totalHarga = penjualan['totalharga'] ?? 0;
 
     showDialog(
@@ -85,32 +99,88 @@ class _InvoiceState extends State<Invoice> {
         onCancel: () => Navigator.pop(context),
         onConfirm: () => Navigator.pop(context),
         showButton: false,
+        createPDF: () =>
+            createPDF(formattedDate, customerName, cartItems, totalHarga),
       ),
     );
+  }
+
+  /// Fungsi createPDF: Membuat file PDF yang meniru tampilan struk/invoice dan otomatis membagikan (atau mendownload) file PDF tersebut.
+  Future<void> createPDF(String date, String customer,
+      List<Map<String, dynamic>> items, int totalHarga) async {
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(
+                child: pw.Text(
+                  'STRUK TRANSAKSI',
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold),
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text('Tanggal: $date'),
+              pw.Text('Pelanggan: $customer'),
+              pw.Divider(),
+              pw.Text('Daftar Pesanan:',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 8),
+              pw.Column(
+                children: items.map((item) {
+                  final subtotal =
+                      (item['harga'] as int) * (item['total'] as int);
+                  return pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Expanded(
+                            child: pw.Text(
+                                '${item['namaproduk']} (x${item['total']})')),
+                        pw.Text(
+                            'Rp ${NumberFormat("#,##0", "id").format(subtotal)}'),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+              pw.Divider(),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('TOTAL:',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                      'Rp ${NumberFormat("#,##0", "id").format(totalHarga)}',
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold, fontSize: 16)),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final bytes = await pdf.save();
+    await Printing.sharePdf(bytes: bytes, filename: 'invoice.pdf');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
+        automaticallyImplyLeading: false,
         backgroundColor: ThemeColor.background,
-        elevation: 0,
-        title: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 8),
-          decoration: BoxDecoration(
-            color: ThemeColor.putih,
-            borderRadius: ThemeSize.borderRadius,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                offset: const Offset(0, 2),
-                blurRadius: 4,
-              ),
-            ],
-          ),
-          child: const Text(
-            "Invoice",
+        title: const Center(
+          child: Text(
+            'Invoice',
+            textAlign: TextAlign.center,
             style: TextStyle(fontSize: 20),
           ),
         ),
@@ -119,14 +189,14 @@ class _InvoiceState extends State<Invoice> {
         padding: EdgeInsets.all(ThemeSize.padding),
         child: FutureBuilder<List<dynamic>>(
           future: listPenjualan,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, item) {
+            if (item.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            if (!item.hasData || item.data!.isEmpty) {
               return const Center(child: Text("Tidak ada data transaksi"));
             }
-            final invoices = snapshot.data!;
+            final invoices = item.data!;
             return ListView.builder(
               itemCount: invoices.length,
               itemBuilder: (context, index) {
@@ -139,26 +209,27 @@ class _InvoiceState extends State<Invoice> {
                         .format(DateTime.parse(tanggalPenjualan.toString()))
                     : '';
 
-                String customerName = 'Non Member';
-                if (penjualan.containsKey('pelanggan') &&
-                    penjualan['pelanggan'] is Map<String, dynamic>) {
-                  customerName =
-                      penjualan['pelanggan']['namapelanggan']?.toString() ??
-                          'Non Member';
-                }
-                return CustomList(
-                  id: penjualanID,
-                  title: customerName,
-                  text1: formattedDate,
-                  text2: 'Rp ${NumberFormat("#,###", "id").format(totalHarga)}',
-                  delete: () {},
-                  edit: () => showInvoice(penjualan),
+                return FutureBuilder<String>(
+                  future: getCustomerName(penjualan),
+                  builder: (context, item) {
+                    final customerName = item.data ?? 'Non Member';
+                    return CustomList(
+                      id: penjualanID,
+                      title: customerName,
+                      text1: formattedDate,
+                      text2:
+                          'Rp ${NumberFormat("#,##0", "id").format(totalHarga)}',
+                      delete: () {},
+                      edit: () => showInvoice(penjualan),
+                    );
+                  },
                 );
               },
             );
           },
         ),
       ),
+      // Jika diperlukan, aktifkan floatingActionButton untuk fungsi search
       // floatingActionButton: IconButton(
       //   icon: const Icon(Icons.search),
       //   color: ThemeColor.hijau,

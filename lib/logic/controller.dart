@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,7 +59,6 @@ class AuthController {
   Future<void> logout() async {
     try {
       await supabase.auth.signOut();
-      // Saat logout, hapus nilai usernameProfile di memori dan storage
       usernameProfile = null;
       final prefs = await SharedPreferences.getInstance();
       prefs.remove('usernameProfile');
@@ -68,14 +68,13 @@ class AuthController {
   }
 
   Future<Map<String, dynamic>> fetchProfile() async {
-    // Jika usernameProfile belum diinisialisasi, coba load dari storage
     String? usernameToUse = usernameProfile;
     if (usernameToUse == null) {
       usernameToUse = await loadUsername();
       if (usernameToUse == null) {
         throw Exception('Username belum diinisialisasi');
       }
-      usernameProfile = usernameToUse; // Simpan kembali ke variabel global
+      usernameProfile = usernameToUse;
     }
 
     final response = await supabase
@@ -173,17 +172,67 @@ class PelangganController {
 class TransaksiController {
   Future<void> addTransaction({
     required pelangganID,
-    required int totalHarga,
+    required int totalHarga, // Ini adalah total harga dasar dari cartItems
     required List<Map<String, dynamic>> cartItems,
+    // Parameter tambahan untuk biaya dan diskon:
+    required Map<String, bool> biayaOptions,
+    required Map<String, bool> diskonOptions,
+    required String?
+        biayaLainnyaInput, // Nilai input dari user untuk opsi "Lainnya" pada biaya
   }) async {
     try {
+      // --- Hitung biaya tambahan ---
+      int additionalCost = 0;
+      Map<String, dynamic> biayaLainJson = {};
+
+      // Jika "Layanan" dipilih, tambahkan 2000
+      if (biayaOptions["Layanan"] == true) {
+        additionalCost += 2000;
+        biayaLainJson["Layanan"] = true;
+      } else {
+        biayaLainJson["Layanan"] = false;
+      }
+
+      // Jika "Lainnya" dipilih, tambahkan nilai input (pastikan input valid sebagai angka)
+      if (biayaOptions["Lainnya"] == true) {
+        int nilaiLain = int.tryParse(biayaLainnyaInput ?? "") ?? 0;
+        additionalCost += nilaiLain;
+        biayaLainJson["Lainnya"] = nilaiLain;
+      } else {
+        biayaLainJson["Lainnya"] = 0;
+      }
+
+      // Untuk opsi "PPN" (jika dipilih), simpan saja boolean-nya.
+      bool ppnSelected = (biayaOptions["PPN"] == true);
+      biayaLainJson["PPN"] = ppnSelected;
+
+      // --- Hitung subtotal awal ---
+      int baseTotal = totalHarga; // Total dari cartItems
+      int intermediateTotal = baseTotal + additionalCost;
+
+      // --- Hitung diskon ---
+      // Misalnya, untuk setiap diskon yang dipilih, total dikalikan dengan 0.7 (diskon 30% secara multiplikatif)
+      int discountCount = diskonOptions.values.where((v) => v).length;
+      double discountedTotal = intermediateTotal * pow(0.7, discountCount).toDouble();
+
+      // --- Terapkan PPN jika dipilih ---
+      double finalTotal =
+          ppnSelected ? discountedTotal * 1.11 : discountedTotal;
+
+      // Bulatkan hasil akhir ke integer
+      int computedTotalHarga = finalTotal.round();
+
+      // Insert data ke tabel penjualan
       final penjualanResponse = await supabase.from('penjualan').insert({
-        'totalharga': totalHarga,
+        'totalharga': computedTotalHarga,
         'pelangganID': pelangganID,
+        'diskon': diskonOptions, // Disimpan sebagai JSON
+        'biaya_lain': biayaLainJson, // Disimpan sebagai JSON
       }).select();
 
       final penjualanID = penjualanResponse[0]['penjualanID'];
 
+      // Siapkan data untuk detail penjualan
       final List<Map<String, dynamic>> detailPenjualan = cartItems.map((item) {
         return {
           'penjualanID': penjualanID,
@@ -195,6 +244,7 @@ class TransaksiController {
 
       await supabase.from('detailpenjualan').insert(detailPenjualan);
 
+      // Update stok untuk setiap produk
       for (var item in cartItems) {
         final produkResponse = await supabase
             .from('produk')
@@ -206,7 +256,6 @@ class TransaksiController {
           final currentStok = produkResponse['stok'] as int;
           final jumlahTerjual = item['total'] as int;
           final newStok = currentStok - jumlahTerjual;
-          // Perbarui stok produk di tabel produk
           await supabase
               .from('produk')
               .update({'stok': newStok}).eq('produkID', item['produkID']);
@@ -225,14 +274,14 @@ class TransaksiController {
       if (userData.containsKey('id')) {
         final response = await supabase
             .from('penjualan')
-            .select('*, pelanggan(*)')
+            .select('*, pelanggan:pelangganID(*)')
             .eq('pelanggan.userID', userData['id'])
             .order('tanggalpenjualan', ascending: false);
         return response as List<dynamic>;
       } else {
         final response = await supabase
             .from('penjualan')
-            .select('*, pelanggan(*)')
+            .select('*, pelanggan:pelangganID(*)')
             .order('tanggalpenjualan', ascending: false);
         return response as List<dynamic>;
       }
@@ -252,6 +301,24 @@ class TransaksiController {
     } catch (e) {
       debugPrint('Error fetching detail penjualan: $e');
       rethrow;
+    }
+  }
+
+  Future<String> fetchCustomerName(dynamic pelangganID) async {
+    try {
+      final response = await supabase
+          .from('pelanggan')
+          .select('namapelanggan')
+          .eq('pelangganID', pelangganID)
+          .maybeSingle();
+      if (response != null && response['namapelanggan'] != null) {
+        return response['namapelanggan'].toString();
+      } else {
+        return 'Non Member';
+      }
+    } catch (e) {
+      debugPrint('Error fetching customer name: $e');
+      return 'Non Member';
     }
   }
 }

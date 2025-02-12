@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import '../../components/themes.dart';
 
 class SingleCartItemTile extends StatelessWidget {
@@ -96,6 +95,108 @@ class SingleCartItemTile extends StatelessWidget {
           const Divider(thickness: 0.1),
         ],
       ),
+    );
+  }
+}
+
+class CheckboxGroupWidget extends StatelessWidget {
+  final String title;
+  final Map<String, bool> options;
+  final TextEditingController? otherController;
+  final void Function(String option, bool value) onChanged;
+
+  const CheckboxGroupWidget({
+    Key? key,
+    required this.title,
+    required this.options,
+    this.otherController,
+    required this.onChanged,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> keys = options.keys.toList();
+    final List<Widget> rows = [];
+
+    for (int i = 0; i < keys.length; i += 2) {
+      final String option1 = keys[i];
+      final Widget firstItem = Expanded(
+        child: Row(
+          children: [
+            Checkbox(
+              value: options[option1],
+              onChanged: (value) => onChanged(option1, value ?? false),
+            ),
+            Text(option1),
+            // Jika opsi "Lainnya" dan nilainya true, tampilkan TextField
+            if (option1 == "Lainnya" &&
+                (options[option1] ?? false) &&
+                otherController != null)
+              Expanded(
+                child: TextField(
+                  controller: otherController,
+                  decoration: InputDecoration(
+                    hintText: "Masukkan $title lainnya",
+                    isDense: true,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+
+      // widget untuk item kedua (jika ada)
+      Widget secondItem = Expanded(child: Container());
+      if (i + 1 < keys.length) {
+        final String option2 = keys[i + 1];
+        secondItem = Expanded(
+          child: Row(
+            children: [
+              Checkbox(
+                value: options[option2],
+                onChanged: (value) => onChanged(option2, value ?? false),
+              ),
+              Text(option2),
+              if (option2 == "Lainnya" &&
+                  (options[option2] ?? false) &&
+                  otherController != null)
+                Expanded(
+                  child: TextField(
+                    controller: otherController,
+                    decoration: InputDecoration(
+                      hintText: "Masukkan $title lainnya",
+                      isDense: true,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }
+      // Tambahkan baris yang terdiri dari dua Expanded tersebut
+      rows.add(Row(
+        children: [firstItem, secondItem],
+      ));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: ThemeColor.hijau,
+          ),
+        ),
+        const SizedBox(height: 4),
+        ...rows,
+      ],
     );
   }
 }

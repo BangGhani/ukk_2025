@@ -18,19 +18,42 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final AuthController authController = AuthController();
   final FocusNode _passwordFocusNode = FocusNode();
+  bool _isLoading = false;
 
   Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
 
     debugPrint("Username: ${userController.text}");
     debugPrint("Password: ${passwordController.text}");
 
     try {
-      await authController.login(
+      final loginFuture = authController.login(
         userController.text.trim(),
         passwordController.text.trim(),
       );
 
+      final result = await loginFuture.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: ThemeColor.background,
+              content: AwesomeSnackbarContent(
+                title: 'Koneksi Lambat',
+                message: 'Mohon tunggu, koneksi sedang lambat',
+                contentType: ContentType.warning,
+              ),
+            ),
+          );
+          return null;
+        },
+      );
+
+      // Jika login berhasil (tidak null), lanjutkan ke HomePage
       if (supabase.auth.currentSession != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -58,6 +81,10 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -98,11 +125,10 @@ class _LoginPageState extends State<LoginPage> {
               Text(
                 'eCashier',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
-                  letterSpacing: 2.0,
-                ),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                    letterSpacing: 2.0),
               ),
               const SizedBox(height: 40),
               Form(
@@ -136,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: login,
+                        onPressed: _isLoading ? null : login,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: ThemeColor.hijau,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -145,32 +171,23 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           elevation: 3,
                         ),
-                        child: const Text(
-                          'MASUK',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'MASUK',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
-              // TextButton(
-              //   onPressed: () {
-              //     // Navigasi ke lupa password
-              //   },
-              //   child: const Text(
-              //     'Lupa Password?',
-              //     style: TextStyle(
-              //       color: ThemeColor.hijau,
-              //       decoration: TextDecoration.underline,
-              //     ),
-              //   ),
-              // ),
             ],
           ),
         ),

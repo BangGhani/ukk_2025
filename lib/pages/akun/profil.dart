@@ -56,17 +56,17 @@ class _ProfilState extends State<Profil> {
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: profilData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+        builder: (context, item) {
+          if (item.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+          if (item.hasError) {
+            return Center(child: Text('Error: ${item.error}'));
           }
-          if (!snapshot.hasData) {
+          if (!item.hasData) {
             return const Center(child: Text('Tidak ada data profil'));
           }
-          final profile = snapshot.data!;
+          final profile = item.data!;
           final String nama = profile['nama'] ?? '';
           final String email = profile['email'] ?? '';
           final String role = toCamelCase(profile['role'] ?? '');
